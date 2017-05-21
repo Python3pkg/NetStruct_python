@@ -31,7 +31,7 @@ class buildGDmatrix(object):
         try:
             data,area,ind = read_data(fname)
         except IOError:
-            print "Please specify full file name"
+            print("Please specify full file name")
 #        if fname.endswith('.csv'):
 #            data,area,ind = readcsv(fname)
 #        elif fname.endswith(('.h5','.hdf5')):
@@ -40,7 +40,7 @@ class buildGDmatrix(object):
 #            print "Please specify full file name"
 #            raise IOError
         start_time = time.time()
-        print "Constructing genetic similarity matrix"
+        print("Constructing genetic similarity matrix")
         self.data = data
         self.npop , num_columns = data.shape
         self.nloci = int(num_columns/2)
@@ -49,10 +49,10 @@ class buildGDmatrix(object):
         if ind is not None:
             self.ind=ind
         self.calc_allele_freq()
-        print "Finished calculating alleles frequencies in : %f seconds" % (time.time() - start_time)
+        print("Finished calculating alleles frequencies in : %f seconds" % (time.time() - start_time))
         start_time = time.time()
         self.build()
-        print "Finished building genetic similarity matrix in : %f seconds" % (time.time() - start_time)
+        print("Finished building genetic similarity matrix in : %f seconds" % (time.time() - start_time))
         if outputfname is None:
             if fname.endswith('.hdf5'):
                 outputfname=fname[:-5]
@@ -168,7 +168,7 @@ def FindCommunities(fname,threshold=0.0,algorithm_num=6):
     graph = igraph.Graph.Weighted_Adjacency(matx.tolist(),attr="weight",mode="UPPER")#Creates an undirected weighted igraph graph object with the adjacency matrix
     graph["name"] = "NetStruck Weighted Graph with threshold={0}".format(threshold)
     graph.vs["area"]=area
-    graph.vs["name"]=map(str,ind)
+    graph.vs["name"]=list(map(str,ind))
     graph.vs["degree"]=matx.sum(axis=1)
     components = graph.components()
     initial_membership_num = []
@@ -201,7 +201,7 @@ def loopGDmat(data_fname,threshold_min, threshold_max,threshold_delta,algorithm_
 			2. A PDF with the piecharts for each threshold
 			3. A pickled (igraph format) file which contains the partitioned graph. This file is intended for the further analyses
     """
-    print "Running command: ", data_fname,threshold_min, threshold_max,threshold_delta,algorithm_num,outputfname
+    print("Running command: ", data_fname,threshold_min, threshold_max,threshold_delta,algorithm_num,outputfname)
     if outputfname is None:
         if data_fname.endswith('.hdf5'):
             outputfname=data_fname[:-5]
@@ -217,8 +217,8 @@ def loopGDmat(data_fname,threshold_min, threshold_max,threshold_delta,algorithm_
     graphs=[]
     import os
     thresholds = np.arange(threshold_min, threshold_max+threshold_delta,threshold_delta)
-    np.savetxt('thresholds.dat',map(str,map(int,(thresholds*1000))), fmt="%s")
-    print "Output filename: ",outputfname
+    np.savetxt('thresholds.dat',list(map(str,list(map(int,(thresholds*1000))))), fmt="%s")
+    print("Output filename: ",outputfname)
     with zipfile.ZipFile(outputfname+".zip", 'w') as myzip:
         myzip.write('thresholds.dat')
         try:
@@ -242,10 +242,10 @@ def loopGDmat(data_fname,threshold_min, threshold_max,threshold_delta,algorithm_
                 os.remove("0_"+pickled_graph_name+".csv")
             except OSError:
                 pass
-    print "Finished community detection analysis in : %f seconds" % (time.time() - start_time)
+    print("Finished community detection analysis in : %f seconds" % (time.time() - start_time))
     start_time = time.time()
     createPieCharts(areas,thresholds,graphs,piecharts_fname="piecharts_"+outputfname)#Creates and saves the PDF with piecharts
-    print "Finished producing PDF with piecharts in : %f seconds" % (time.time() - start_time)
+    print("Finished producing PDF with piecharts in : %f seconds" % (time.time() - start_time))
 
 def createPieCharts(areas,thresholds,graphs,piecharts_fname="piecharts"):
     """ Creates the PDF with the piecharts for the different thresholds """
@@ -271,9 +271,9 @@ def createPieCharts(areas,thresholds,graphs,piecharts_fname="piecharts"):
 def calcPiecharts(graph,areas):
     """ Calculates the fraction of each community in each area """
     fracs = {}
-    mat=np.asarray(zip(graph.vs["area"],graph.vs["cluster"]))
+    mat=np.asarray(list(zip(graph.vs["area"],graph.vs["cluster"])))
     for area in areas:
-        fracs[area]=np.bincount(map(int,mat[np.where(mat[:,0]==area)][:,1]))/float(len(map(int,mat[np.where(mat[:,0]==area)][:,1])))
+        fracs[area]=np.bincount(list(map(int,mat[np.where(mat[:,0]==area)][:,1])))/float(len(list(map(int,mat[np.where(mat[:,0]==area)][:,1]))))
     return fracs
 
 def SADanalysis(zipped_pickle_fname,threshold,csv_fname):
@@ -288,7 +288,7 @@ def SADanalysis(zipped_pickle_fname,threshold,csv_fname):
 #    print str(int(threshold*1000))
     if csv_fname is None:
         csv_fname="SADresults.csv"
-    print "Output file: ",csv_fname
+    print("Output file: ",csv_fname)
     with zipfile.ZipFile(zipped_pickle_fname+".zip", 'r') as myzip:
 #        myzip.extract('thresholds.dat')
 #        file_thresholds = np.array(map(int,np.loadtxt('thresholds.dat')))
@@ -309,7 +309,7 @@ def SADanalysis(zipped_pickle_fname,threshold,csv_fname):
     try:
         assert len(clusters)>1 #For a community of size 1, SAD analysis cannot be performed
     except AssertionError:
-        print "Error: Cannot run SAD analysis since only one cluster (no structure) was detected"
+        print("Error: Cannot run SAD analysis since only one cluster (no structure) was detected")
         raise
     """ Save results into CSV file """
     rows=[]
@@ -395,7 +395,7 @@ def main(args):
         if args.outfname=="output_file":
             args.outfname = "Community_Detection_Results"
         input_fname,threshold_min,threshold_max,threshold_delta,algorithm_num = args.loopGDmat
-        print "Processing command: ",input_fname,threshold_min,threshold_max,threshold_delta,algorithm_num,args.outfname
+        print("Processing command: ",input_fname,threshold_min,threshold_max,threshold_delta,algorithm_num,args.outfname)
         loopGDmat(input_fname,float(threshold_min),float(threshold_max),float(threshold_delta)
                  ,algorithm_num,args.loopGDmat_results)
     elif args.SAD is not None:
@@ -417,7 +417,7 @@ def readcsv(fname):
        ncols = len(f.readline().split(','))
     area = np.loadtxt(fname, delimiter=',', usecols=[0],dtype=str)
     ind  = np.loadtxt(fname, delimiter=',', usecols=[1],dtype=str)
-    data = np.loadtxt(fname, delimiter=',', usecols=range(2,ncols),dtype=str)
+    data = np.loadtxt(fname, delimiter=',', usecols=list(range(2,ncols)),dtype=str)
     return data,area,ind
 
 def readhdf5(fname):
@@ -443,7 +443,7 @@ def saveGDmatrix(fname,area,ind,data_a,GDmatrix):
     elif not fname.endswith(('.h5','.hdf5')):
         fname+=".hdf5"
     data_dict = {'area':area,'ind':ind,'data':data_a,'GDmatrix':GDmatrix}
-    print "Writing to file ",fname
+    print("Writing to file ",fname)
     dd.io.save(fname,data_dict,compression='blosc')
 
 def loadareas(fname):
